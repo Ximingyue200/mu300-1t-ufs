@@ -79,3 +79,17 @@ MU300_SSH_PASSWORD=yourpassword python scripts/run_update.py <package-dir> <devi
 * LAN after the package install: `192.168.77.1` (the package's default), not the installer's `192.168.78.1`.
 
 More detail: [`docs/ports-notes.md`](docs/ports-notes.md), [`docs/package-adapt.md`](docs/package-adapt.md).
+
+## Relation to upstream
+
+This repository is a downstream branch of [dikeckaan/mu300-linux](https://github.com/dikeckaan/mu300-linux) (MIT).
+
+On top of that baseline it adds:
+
+- `patches/0022-ufs-sprd-accept-the-firmware-dt.patch` — make `ufs-sprd` accept the firmware DT (`sprd,ufshc`, `ufs_soft_rst`/`ufsdev_soft_rst`, syscon triples) and enable the UFS host (upstream issue #396, PR #504).
+- `config/ufs.config` — kernel config additions for the 1 TB UFS unit (`CONFIG_SCSI_UFSHCD*`).
+- `docs/` — package adaptation and port notes for the UFS variant.
+- `scripts/` — bundle build / artifact fetch / repackage helpers used for the release.
+- Release artifacts built with kernel 6.18 and 7.2 against OpenWrt 25.12.5 (mu300-r20261120).
+
+Everything else follows upstream. Licensing follows the upstream MIT license; see LICENSE.
