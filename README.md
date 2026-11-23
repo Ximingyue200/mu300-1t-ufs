@@ -115,3 +115,11 @@ MU300_RELEASE=v2026.11.23-ufs mu300-update boot
 back to Android if the kernel does not come up. Verified after the reboot: `uname -r` 7.3.1,
 `ufshcd-sprd 22000000.ufs` + loop root, Wi-Fi AP, 5G data on `sipa_eth8`, tunnel, and all OpenList
 storages working. The 7.2.8 flash package of v2026.11.21-ufs stays as the fallback.
+
+Two device-side adjustments are needed because the desktop package installs the UFS unit's system as the
+root of the loop-mounted ext4 (not an `<os>` directory under the Linux partition):
+
+1. `/usr/bin/mu300-update` lists the mainline kernels in `KERNELS="5.4 6.18 7.2"`; add `7.3`.
+2. `mounted_disk()` requires `$DISK/openwrt` (or `$DISK/ubuntu`); on this layout the running system is
+   `/`, so a temporary `ln -sfn / /mnt/mu300-disk/openwrt` lets the updater install the modules into
+   `/lib/modules/7.3.1`. The symlink can be removed afterwards.
