@@ -1,6 +1,6 @@
 # ZTE U30 Air 1 TB (UFS) — mainline Linux / OpenWrt port
 
-Everything needed to run **mainline Linux (6.18 / 7.2) with OpenWrt** on the UFS variant of the
+Everything needed to run **mainline Linux (6.18 / 7.2 / 7.3.1) with OpenWrt** on the UFS variant of the
 ZTE U30 Air (`ums9620_2h10_feimao`, Samsung KLUGGARHGB-B0E1, `/dev/sda`, 4096-byte logical blocks),
 including the desktop firmware package used for it.
 
@@ -36,7 +36,7 @@ arm64 runner; `scripts/build-bundle.py` downloads such a run and assembles the k
 > `kernel.release` must be LF-only. A CRLF (Windows checkout) names the modules directory
 > `<release>\r` and then no module loads.
 
-Verified on the unit: 6.18.60 and 7.2.8 boot with `ufshcd-sprd 22000000.ufs`, `scsi host0: ufshcd`,
+Verified on the unit: 6.18.60, 7.2.8 and 7.3.1 boot with `ufshcd-sprd 22000000.ufs`, `scsi host0: ufshcd`,
 `/dev/sda` and the ext4 region on it, Wi-Fi AP, mobile data (SIM2) and LuCI.
 
 ## Firmware package
@@ -93,3 +93,25 @@ On top of that baseline it adds:
 - Release artifacts built with kernel 6.18 and 7.2 against OpenWrt 25.12.5 (mu300-r20261120).
 
 Everything else follows upstream. Licensing follows the upstream MIT license; see LICENSE.
+
+## Kernel 7.3.1
+
+Upstream retired 7.2 in v2026.11.02.1 and builds 6.18.60 plus 7.3.1; the UFS patch still applies to
+`drivers/ufs/host/ufs-sprd.c` unchanged there (checked against v7.3: the match table still has no
+`sprd,ufshc` and the resets are still `controller`/`device`).
+
+Built by the fork's `UFS kernel build` workflow with `kv=7.3.1` (ubuntu-24.04-arm, the port's own
+`upstream/Dockerfile` + `build.sh` + `build-modules.sh`, the bundle by `upstream/make-bundle.sh`) and
+released as `v2026.11.23-ufs` (`mu300-kernel-7.3.tar.gz`, 3060 modules, `kernel.release` = 7.3.1).
+
+Installed on the running unit with:
+
+```sh
+MU300_KERNEL_BUNDLE=/mnt/mu300-disk/.mu300-update/mu300-kernel-7.3.tar.gz \
+MU300_RELEASE=v2026.11.23-ufs mu300-update boot
+```
+
+`mu300-update` keeps the previous image for `mu300-update rollback-boot`, arms a trial boot and falls
+back to Android if the kernel does not come up. Verified after the reboot: `uname -r` 7.3.1,
+`ufshcd-sprd 22000000.ufs` + loop root, Wi-Fi AP, 5G data on `sipa_eth8`, tunnel, and all OpenList
+storages working. The 7.2.8 flash package of v2026.11.21-ufs stays as the fallback.
