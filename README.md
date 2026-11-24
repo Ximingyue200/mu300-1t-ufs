@@ -123,3 +123,16 @@ root of the loop-mounted ext4 (not an `<os>` directory under the Linux partition
 2. `mounted_disk()` requires `$DISK/openwrt` (or `$DISK/ubuntu`); on this layout the running system is
    `/`, so a temporary `ln -sfn / /mnt/mu300-disk/openwrt` lets the updater install the modules into
    `/lib/modules/7.3.1`. The symlink can be removed afterwards.
+
+## Performance notes
+
+- [UFS storage benchmark](docs/storage-benchmark.md) — 1TB UFS 3.1 measured with the `ufs-sprd` patch
+  (seq read ~1.17 GB/s, 4K random ~155 MB/s / 39.7k IOPS).
+- [USB NCM tuning](docs/usb-ncm-tuning.md) — USB tethering from ~585 Mbps to ~4.3 Gbps: RPS + dwc3 IRQ
+  on the big cores, RFS disabled. Includes the failure modes worth knowing about.
+- [Power profiles](docs/power-profiles.md) — charger-aware CPU profiles (performance on AC, schedutil on
+  battery) plus traffic-triggered boosting for USB transfers.
+
+Scripts: `scripts/usb0-tune` (hotplug), `scripts/usb0-gov.sh` (adaptive governor),
+`scripts/power-profile.sh` (AC/battery profile switch). Install as `/etc/hotplug.d/net/20-usb0-tune`,
+`/usr/bin/usb0-gov.sh`, `/usr/bin/power-profile.sh` with their `init.d` wrappers.

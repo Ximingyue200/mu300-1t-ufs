@@ -1,0 +1,15 @@
+#!/bin/sh
+# usb0 (NCM) 性能调优：RPS 绑大核 + dwc3 中断绑大核 + 缓冲
+# 安装: /etc/hotplug.d/net/20-usb0-tune
+[ -e /sys/class/net/usb0 ] || exit 0
+for q in /sys/class/net/usb0/queues/rx-*/rps_cpus; do echo f0 > "$q" 2>/dev/null; done
+# 关闭 RFS：flow_cnt 必须为 0，否则流会被绑回应用线程所在 CPU
+for q in /sys/class/net/usb0/queues/rx-*/rps_flow_cnt; do echo 0 > "$q" 2>/dev/null; done
+echo 0 > /proc/sys/net/core/rps_sock_flow_entries 2>/dev/null
+echo 65536 > /proc/sys/net/core/netdev_max_backlog 2>/dev/null
+echo 16777216 > /proc/sys/net/core/rmem_max 2>/dev/null
+echo 8388608  > /proc/sys/net/core/rmem_default 2>/dev/null
+echo 16777216 > /proc/sys/net/core/wmem_max 2>/dev/null
+irq=$(awk '/dwc3/ {gsub(":","",$1); print $1; exit}' /proc/interrupts)
+[ -n "$irq" ] && echo 4-7 > /proc/irq/$irq/smp_affinity_list 2>/dev/null
+logger -t usb0-tune "RPS/IRQ tuned for usb0 (irq=$irq)"
